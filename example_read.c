@@ -74,6 +74,16 @@ struct dia {
 
 };
 
+struct ccs {
+    int nrows;
+    int ncols;
+    int nnz;
+    int* cluster_rows;
+    int* cluster_cols;
+    int* freq;
+    double* values;
+};
+
 struct coo* allocate_mem_coo(struct coo* my_sparse_matrix, int nrows, int ncols, int nnz) {
     my_sparse_matrix = (struct coo*)malloc(sizeof(struct coo));
     my_sparse_matrix->nrows = nrows;
@@ -92,6 +102,31 @@ int compare(const void* elem1, const void* elem2)
     if (f > s) return  1;
     if (f < s) return -1;
     return 0;
+}
+
+struct ccs* coo_to_ccs(struct coo* coo_mat) {
+    struct ccs* ccs_mat = (struct ccs*)malloc(sizeof(struct ccs));
+    ccs_mat->nrows = coo_mat->nrows;
+    ccs_mat->ncols = coo_mat->ncols;
+    ccs_mat->nnz = coo_mat->nnz;
+
+    /* Calculating the size of the cluster_rows and cluster_cols 
+    *  arrays i.e. calculating how many clusters are there.
+    */
+
+    int row_ind = coo_mat->rows[0];
+    int col_ind = coo_mat->cols[0];
+    int diff = col_ind - row_ind;
+
+    for (int i = 1; i < coo_mat->nnz; i++) {
+        printf("rows[%d] cols[%d] = %f\n", coo_mat->rows[i], coo_mat->cols[i], coo_mat->values[i]);
+        
+        if(diff !)
+
+
+    }
+
+    return ccs_mat;
 }
 
 struct dia* coo_to_dia(struct coo* coo_mat) {
@@ -317,11 +352,11 @@ int main(int argc, char* argv[])
 
     /* Create a random vector of length nz */
 
-    double* x = get_random_vector(N, 5, 10);
+    //double* x = get_random_vector(N, 5, 10);
 
     /* Create a random vector for storing the result of SpMV */
 
-    double* y = (double*)calloc(M, sizeof(double));
+    //double* y = (double*)calloc(M, sizeof(double));
 
     /* SpMV using COO storage format in sequential mode */
 
@@ -341,7 +376,8 @@ int main(int argc, char* argv[])
     printf("Time for SpMV for matrix having %d non-zeros is %f\n", my_sparse_matrix->nnz, time_required);
     printf("GFlops for SpMV for matrix having %d non-zeros is %f\n", my_sparse_matrix->nnz, (2 * my_sparse_matrix->nnz) / (time_required * pow(10.0, 9.0)));*/
 
-    struct dia* dia_mat = coo_to_dia(my_sparse_matrix);
+    //struct dia* dia_mat = coo_to_dia(my_sparse_matrix);
+    struct ccs* ccs_mat = coo_to_ccs(my_sparse_matrix);
 
     free(my_sparse_matrix->rows);
     free(my_sparse_matrix->cols);
@@ -355,18 +391,18 @@ int main(int argc, char* argv[])
     printf("Number of non-zero elements: %d\n", dia_mat->nnz);
     printf("Number of diagonals: %d\n", dia_mat->ndiags);*/
 
-    clock_t start = clock();
+    /*clock_t start = clock();
     SpMV_DIA(dia_mat, x, y);
     clock_t end = clock();
     double time_required = (double)(end - start) / CLOCKS_PER_SEC;
     printf("Time for SpMV for matrix having %d non-zeros is %f\n", dia_mat->nnz, time_required);
-    printf("GFlops for SpMV for matrix having %d non-zeros is %f\n", dia_mat->nnz, (2 * dia_mat->nnz) / (time_required * pow(10.0, 9.0)));
+    printf("GFlops for SpMV for matrix having %d non-zeros is %f\n", dia_mat->nnz, (2 * dia_mat->nnz) / (time_required * pow(10.0, 9.0)));*/
 
-    free(x);
-    free(y);
-    free(dia_mat->offset);
-    free(dia_mat->data);
-    free(dia_mat);
+    //free(x);
+    //free(y);
+    //free(ccs_mat->offset);
+    //free(dia_mat->data);
+    free(ccs_mat);
 
 
     return 0;
