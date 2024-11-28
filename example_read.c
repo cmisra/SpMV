@@ -110,19 +110,31 @@ struct ccs* coo_to_ccs(struct coo* coo_mat) {
     ccs_mat->ncols = coo_mat->ncols;
     ccs_mat->nnz = coo_mat->nnz;
 
-    /* Calculating the size of the cluster_rows and cluster_cols 
+    /* Creating an array "diff" which stores the 
+    *  value of [col_index - row_index] of every
+    *  non-zero element present in the matrix. Same
+    *  [diff] value will be in a single diaginal.
+    */
+
+    int* diff = (int*) malloc(sizeof(int) * coo_mat->nnz);
+
+    for (int i = 0; i < coo_mat->nnz; i++) {        
+        diff[i] = coo_mat->cols[i] - coo_mat->rows[i];                
+    }
+
+    /*
+    *  Sorting the [diff] array so that the array is
+    *  sorted according to the [diff] value. This will
+    *  sort and cluster all the diagonal indices.
+    */
+
+    qsort(diff, coo_mat->nnz, sizeof(int), compare);
+
+    /* Calculating the size of the cluster_rows and cluster_cols
     *  arrays i.e. calculating how many clusters are there.
     */
 
-    int row_ind = coo_mat->rows[0];
-    int col_ind = coo_mat->cols[0];
-    int diff = col_ind - row_ind;
-
-    for (int i = 1; i < coo_mat->nnz; i++) {
-        printf("rows[%d] cols[%d] = %f\n", coo_mat->rows[i], coo_mat->cols[i], coo_mat->values[i]);
-        
-        if(diff !)
-
+    for (int i = 0; i < coo_mat->nnz - 1; i++) {
 
     }
 
@@ -167,7 +179,7 @@ struct dia* coo_to_dia(struct coo* coo_mat) {
     for (int i = 0; i < max(dia_mat->nrows, dia_mat->ncols); i++) {
         temp_data[i] = (double*)calloc(ndiags, sizeof(double));
     }
-    
+
 
     for (int i = 0; i < coo_mat->nnz; i++) {
         int row = coo_mat->rows[i];
@@ -250,20 +262,20 @@ void SpMV_DIA(struct dia* A, double* x, double* y) {
     int i = 0;
     int stride = fmax(A->nrows, A->ncols);
     int n = 0;
-    #pragma omp parallel for schedule(static, A->ndiags)
+#pragma omp parallel for schedule(static, A->ndiags)
     for (i = 0; i < A->ndiags; i++) {
         int k = A->offset[i];
         int istart = fmax(0, -k);
         int jstart = max(0, k);
 
         int N = fmin(A->nrows - istart, A->ncols - jstart);
-        
+
         for (n = 0; n < N; n++) {
             y[istart + n] += A->data[istart + i * stride + n] * x[jstart + n];
         }
     }
 
-    
+
 }
 
 void SpMV_openmp(struct coo* A, double* x, double* y) {
